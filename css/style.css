@@ -777,6 +777,31 @@ img {
     margin-top: -1rem;
 }
 
+.guest-status {
+    margin-bottom: 1rem;
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--crema-oscuro);
+    background: #fbf9f6;
+    font-size: 0.86rem;
+    color: var(--marron);
+}
+
+.guest-status.status-loading {
+    border-color: var(--dorado-claro);
+    background: #fffaf2;
+}
+
+.guest-status.status-ok {
+    border-color: rgba(156, 175, 136, 0.45);
+    background: rgba(156, 175, 136, 0.1);
+}
+
+.guest-status.status-error {
+    border-color: rgba(226, 114, 91, 0.45);
+    background: rgba(226, 114, 91, 0.1);
+}
+
 .rsvp-form {
     display: flex;
     flex-direction: column;
@@ -823,6 +848,11 @@ img {
     color: #C4B8A8;
 }
 
+.ayuda-texto {
+    font-size: 0.75rem;
+    color: var(--marron-claro);
+}
+
 /* Radio buttons personalizados */
 .radio-grupo {
     display: flex;
@@ -841,6 +871,11 @@ img {
 
 .radio-label input[type="radio"] {
     display: none;
+}
+
+.radio-label:focus-within .radio-custom {
+    outline: 2px solid var(--salvia-oscuro);
+    outline-offset: 2px;
 }
 
 .radio-custom {
@@ -881,8 +916,8 @@ img {
 }
 
 .cantidad-btn {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border: 1.5px solid var(--crema-oscuro);
     background: var(--blanco);
     border-radius: 8px;
@@ -952,6 +987,15 @@ img {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
+}
+
+.rsvp-boton:focus-visible,
+.cantidad-btn:focus-visible,
+.form-grupo input:focus-visible,
+.form-grupo textarea:focus-visible,
+.radio-label:focus-visible {
+    outline: 2px solid var(--salvia-oscuro);
+    outline-offset: 2px;
 }
 
 .boton-icono {
@@ -1091,6 +1135,19 @@ img {
    ============================================ */
 
 @media (max-width: 480px) {
+    .sobre-section,
+    .invitacion-header,
+    .seccion-fecha,
+    .seccion-fotos,
+    .seccion-itinerario,
+    .seccion-dresscode,
+    .seccion-regalos,
+    .seccion-rsvp,
+    .invitacion-footer {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
     .sobre {
         width: 280px;
         height: 190px;
@@ -1127,6 +1184,36 @@ img {
     .radio-grupo {
         flex-direction: column;
         gap: 0.8rem;
+    }
+
+    .rsvp-boton,
+    .cantidad-btn,
+    .form-grupo input,
+    .form-grupo textarea {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 360px) {
+    .sobre {
+        width: 250px;
+        height: 170px;
+    }
+
+    .carta-contenido {
+        padding: 1.2rem 0.8rem;
+    }
+
+    .carta-nombre {
+        font-size: 1.2rem;
+    }
+
+    .pases-numero {
+        font-size: 1.8rem;
+    }
+
+    .sobre.abierto .carta {
+        transform: translateY(-130px) scale(1.05);
     }
 }
 
@@ -1167,4 +1254,23 @@ img {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--salvia);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .sobre-hint,
+    .footer-corazones span {
+        animation: none !important;
+    }
 }

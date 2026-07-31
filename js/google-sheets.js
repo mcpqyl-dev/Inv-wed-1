@@ -1,195 +1,348 @@
 /* ============================================
-   INTEGRACIÓN CON GOOGLE SHEETS (Google Apps Script)
-
-   INSTRUCCIONES DE CONFIGURACIÓN:
-
-   1. Ve a https://script.google.com
-   2. Crea un nuevo proyecto
-   3. Pega el código de abajo (sección GOOGLE APPS SCRIPT)
-   4. Guarda y haz "Deploy" > "New deployment" > tipo "Web app"
-   5. Configura:
-      - Execute as: Me
-      - Who has access: Anyone
-   6. Copia la URL de deployment
-   7. Pégala en GOOGLE_SCRIPT_URL de abajo
-   8. En tu Google Sheet, crea una hoja con estos encabezados:
-      A: Fecha | B: Nombre | C: Asistencia | D: Cantidad | E: NombresAsistentes | F: Alergias | G: Mensaje
-
+   RSVP + INTEGRACION GOOGLE APPS SCRIPT
    ============================================ */
 
-// ═══════════════════════════════════════════
-// CONFIGURACIÓN
-// ═══════════════════════════════════════════
-const GOOGLE_SCRIPT_URL = '[PEGA_AQUI_TU_URL_DE_GOOGLE_APPS_SCRIPT]';
+document.addEventListener('DOMContentLoaded', function () {
+  const config = window.APP_CONFIG || {};
+  const apiConfig = config.api || {};
+  const securityConfig = config.security || {};
+  const storageConfig = config.storage || {};
+  const ui = window.InvitationUI;
 
-// ═══════════════════════════════════════════
-// ENVÍO DEL FORMULARIO
-// ═══════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('rsvp-form');
-    const boton = document.getElementById('rsvp-boton');
-    const exitoDiv = document.getElementById('rsvp-exito');
-    const errorDiv = document.getElementById('rsvp-error');
-    const errorMensaje = document.getElementById('error-mensaje');
-    const exitoDetalles = document.getElementById('exito-detalles');
+  const form = document.getElementById('rsvp-form');
+  const boton = document.getElementById('rsvp-boton');
+  const botonTexto = boton ? boton.querySelector('.boton-texto') : null;
+  const exitoDiv = document.getElementById('rsvp-exito');
+  const errorDiv = document.getElementById('rsvp-error');
+  const errorMensaje = document.getElementById('error-mensaje');
+  const exitoDetalles = document.getElementById('exito-detalles');
 
-    if (!form) return;
+  const nombreInput = document.getElementById('rsvp-nombre');
+  const codigoInput = document.getElementById('rsvp-codigo');
+  const cantidadInput = document.getElementById('rsvp-cantidad');
+  const acompanantesInput = document.getElementById('rsvp-nombres-asistentes');
+  const alergiasInput = document.getElementById('rsvp-alergias');
+  const mensajeInput = document.getElementById('rsvp-mensaje');
 
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
+  if (!form || !ui) return;
 
-        // Validación básica
-        const nombre = document.getElementById('rsvp-nombre').value.trim();
-        const asistencia = document.querySelector('input[name="asistencia"]:checked');
+  let isSubmitting = false;
+  let validatedGuest = null;
 
-        if (!nombre) {
-            mostrarError('Por favor ingresa tu nombre completo.');
-            return;
-        }
+  function getApiUrl() {
+    return (apiConfig.webAppUrl || '').trim();
+  }
 
-        if (!asistencia) {
-            mostrarError('Por favor indica si asistirás o no.');
-            return;
-        }
+  function getUrlParam(name) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(name);
+  }
 
-        // Deshabilitar botón durante el envío
-        boton.disabled = true;
-        boton.querySelector('.boton-texto').textContent = 'Enviando...';
+  function withTimeout(promise, timeoutMs) {
+    return new Promise(function (resolve, reject) {
+      const timer = setTimeout(function () {
+        reject(new Error('Tiempo de espera agotado al conectar con el servidor.'));
+      }, timeoutMs);
 
-        // Recopilar datos
-        const datos = {
-            nombre: nombre,
-            asistencia: asistencia.value,
-            cantidad: document.getElementById('rsvp-cantidad').value,
-            nombresAsistentes: document.getElementById('rsvp-nombres-asistentes').value.trim(),
-            alergias: document.getElementById('rsvp-alergias').value.trim(),
-            mensaje: document.getElementById('rsvp-mensaje').value.trim(),
-            fechaEnvio: new Date().toLocaleString('es-ES')
-        };
+      promise
+        .then(function (value) {
+          clearTimeout(timer);
+          resolve(value);
+        })
+        .catch(function (error) {
+          clearTimeout(timer);
+          reject(error);
+        });
+    });
+  }
 
-        try {
-            // Si aún no has configurado la URL, simula el envío para pruebas
-            if (GOOGLE_SCRIPT_URL.includes('PEGA_AQUI')) {
-                console.log('📋 Datos a enviar (modo demo):', datos);
-                await simularEnvio();
-                mostrarExito(datos);
-                return;
-            }
+  async function requestJson(url, options) {
+    const timeoutMs = apiConfig.timeoutMs || 12000;
+    const response = await withTimeout(fetch(url, options), timeoutMs);
 
-            // Envío real a Google Sheets
-            const response = await fetch(GOOGLE_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors', // Necesario para Google Apps Script
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(datos)
-            });
+    if (!response.ok) {
+      throw new Error('El servidor respondio con estado ' + response.status + '.');
+    }
 
-            // Como no-cors no devuelve respuesta legible, asumimos éxito
-            mostrarExito(datos);
+    return response.json();
+  }
 
-        } catch (error) {
-            console.error('Error al enviar:', error);
-            mostrarError('Hubo un problema de conexión. Por favor intenta de nuevo.');
-        } finally {
-            boton.disabled = false;
-            boton.querySelector('.boton-texto').textContent = 'Enviar Confirmación';
-        }
+  function setSubmitButtonState(disabled, text) {
+    if (!boton || !botonTexto) return;
+    boton.disabled = disabled;
+    botonTexto.textContent = text;
+  }
+
+  function showError(message) {
+    if (!errorDiv || !errorMensaje) return;
+    errorMensaje.textContent = message;
+    errorDiv.classList.remove('hidden');
+  }
+
+  function hideError() {
+    if (!errorDiv) return;
+    errorDiv.classList.add('hidden');
+  }
+
+  function showSuccess(payload, serverMessage) {
+    form.classList.add('hidden');
+    exitoDiv.classList.remove('hidden');
+    hideError();
+
+    const lines = [];
+    lines.push(payload.nombreInvitado);
+    if (payload.asistencia === 'si') {
+      lines.push('Asistencia confirmada para ' + payload.cantidadConfirmada + ' persona(s).');
+    } else {
+      lines.push('Respuesta registrada: no podra asistir.');
+    }
+    if (serverMessage) {
+      lines.push(serverMessage);
+    }
+    exitoDetalles.textContent = lines.join(' ');
+    exitoDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function getSubmitStorageKey(code) {
+    return (storageConfig.submitPrefix || 'rsvp_submitted_') + code;
+  }
+
+  function generateRequestId() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+      return window.crypto.randomUUID();
+    }
+    const ts = Date.now().toString(36);
+    const rnd = Math.random().toString(36).slice(2, 10);
+    return 'req-' + ts + '-' + rnd;
+  }
+
+  function isValidCodeFormat(code) {
+    const pattern = securityConfig.acceptedCodePattern || /^[A-Za-z0-9_-]{4,30}$/;
+    return pattern.test(code);
+  }
+
+  function parseLegacyDataIfEnabled() {
+    if (!securityConfig.allowLegacyUrlParams) return null;
+
+    const legacyName = getUrlParam('nombre');
+    const legacyPasses = parseInt(getUrlParam('pases'), 10);
+    if (!legacyName || !Number.isFinite(legacyPasses) || legacyPasses < 1) {
+      return null;
+    }
+
+    return {
+      success: true,
+      invitado: {
+        codigo: 'legacy-link',
+        nombre: legacyName,
+        pasesAutorizados: legacyPasses,
+        estado: 'ACTIVO'
+      },
+      warning: 'Modo legado activo. Se recomienda migrar a ?codigo=UNICO.'
+    };
+  }
+
+  async function validateGuestByCode(code) {
+    const apiUrl = getApiUrl();
+    if (!apiUrl || apiUrl.includes('PEGA_AQUI')) {
+      throw new Error('Debes configurar la URL del Web App en js/config.js.');
+    }
+
+    const queryUrl = apiUrl + '?action=guest&codigo=' + encodeURIComponent(code);
+    return requestJson(queryUrl, {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-store'
+    });
+  }
+
+  function getCheckedAttendance() {
+    return document.querySelector('input[name="asistencia"]:checked');
+  }
+
+  function validateFormData(guest) {
+    const attendance = getCheckedAttendance();
+    if (!attendance) {
+      throw new Error('Selecciona si asistiras o no.');
+    }
+
+    const asistencia = attendance.value;
+    const nombre = (nombreInput.value || '').trim();
+    if (!nombre) {
+      throw new Error('No se encontro un nombre valido para esta invitacion.');
+    }
+
+    const maxPasses = parseInt(String(guest.pasesAutorizados), 10) || 1;
+    let confirmedCount = 0;
+
+    if (asistencia === 'si') {
+      const count = parseInt(cantidadInput.value, 10);
+      if (!Number.isFinite(count) || count < 1) {
+        throw new Error('La cantidad de asistentes debe ser al menos 1.');
+      }
+      if (count > maxPasses) {
+        throw new Error('La cantidad confirmada no puede superar tus pases autorizados (' + maxPasses + ').');
+      }
+      confirmedCount = count;
+    }
+
+    if (asistencia === 'no') {
+      confirmedCount = 0;
+    }
+
+    return {
+      requestId: generateRequestId(),
+      codigo: guest.codigo,
+      nombreInvitado: guest.nombre,
+      asistencia: asistencia,
+      cantidadConfirmada: confirmedCount,
+      acompanantes: asistencia === 'si' ? (acompanantesInput.value || '').trim() : '',
+      restriccionesAlimentarias: asistencia === 'si' ? (alergiasInput.value || '').trim() : '',
+      mensaje: (mensajeInput.value || '').trim(),
+      source: 'web-invitacion'
+    };
+  }
+
+  async function sendRsvp(payload) {
+    const apiUrl = getApiUrl();
+    const options = {
+      method: 'POST',
+      mode: 'cors',
+      body: JSON.stringify(payload)
+    };
+
+    try {
+      return await requestJson(apiUrl, options);
+    } catch (error) {
+      if (!apiConfig.allowNoCorsFallback) {
+        throw error;
+      }
+
+      await withTimeout(fetch(apiUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify(payload)
+      }), apiConfig.timeoutMs || 12000);
+
+      return {
+        success: false,
+        message: 'El envio fue realizado en modo no-cors y no se pudo verificar el registro. Revisa Google Sheets antes de confirmar al invitado.'
+      };
+    }
+  }
+
+  function applyGuestValidationResult(result, requestedCode) {
+    if (!result || result.success !== true || !result.invitado) {
+      validatedGuest = null;
+      ui.applyGuestContext({ valido: false });
+      showError((result && result.message) ? result.message : 'Codigo de invitacion invalido o inactivo.');
+      return;
+    }
+
+    const invitado = result.invitado;
+    validatedGuest = {
+      codigo: invitado.codigo || requestedCode,
+      nombre: invitado.nombre,
+      pasesAutorizados: Number(invitado.pasesAutorizados) || 1,
+      estado: invitado.estado || 'ACTIVO'
+    };
+
+    ui.applyGuestContext({
+      codigo: validatedGuest.codigo,
+      nombre: validatedGuest.nombre,
+      pasesAutorizados: validatedGuest.pasesAutorizados,
+      valido: true
     });
 
-    function mostrarExito(datos) {
-        form.classList.add('hidden');
-        exitoDiv.classList.remove('hidden');
-        errorDiv.classList.add('hidden');
+    hideError();
 
-        let detalleTexto = `<strong>${datos.nombre}</strong><br>`;
-        if (datos.asistencia === 'si') {
-            detalleTexto += `✓ Asistirás con <strong>${datos.cantidad}</strong> persona(s)`;
-        } else {
-            detalleTexto += `No podrás asistir. ¡Gracias por avisarnos!`;
-        }
-        exitoDetalles.innerHTML = detalleTexto;
-
-        // Scroll al mensaje
-        exitoDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const submitKey = getSubmitStorageKey(validatedGuest.codigo);
+    const localRecord = sessionStorage.getItem(submitKey);
+    if (localRecord) {
+      ui.setGuestStatus('Ya registraste una confirmacion en esta sesion. Si necesitas cambiarla, puedes reenviar el formulario.', 'ok');
     }
 
-    function mostrarError(mensaje) {
-        errorDiv.classList.remove('hidden');
-        errorMensaje.textContent = mensaje;
+    if (result.ultimaRespuesta && result.ultimaRespuesta.requestId) {
+      ui.setGuestStatus('Ya existe una confirmacion previa para este codigo. Si envias de nuevo, se actualizara.', 'ok');
+    }
+  }
 
-        // Auto-ocultar después de 5 segundos
-        setTimeout(() => {
-            errorDiv.classList.add('hidden');
-        }, 5000);
+  async function initializeGuestFlow() {
+    const codeFromUrl = (getUrlParam('codigo') || '').trim();
+
+    if (!codeFromUrl) {
+      const legacy = parseLegacyDataIfEnabled();
+      if (legacy) {
+        applyGuestValidationResult(legacy, 'legacy-link');
+        return;
+      }
+
+      ui.applyGuestContext({ valido: false });
+      showError('No se encontro codigo en la URL. Usa un enlace con ?codigo=ABC123.');
+      return;
     }
 
-    function simularEnvio() {
-        return new Promise(resolve => setTimeout(resolve, 1500));
+    if (!isValidCodeFormat(codeFromUrl)) {
+      ui.applyGuestContext({ valido: false });
+      showError('El formato del codigo no es valido.');
+      return;
     }
+
+    try {
+      ui.setGuestStatus('Validando invitacion...', 'loading');
+      const result = await validateGuestByCode(codeFromUrl);
+      applyGuestValidationResult(result, codeFromUrl);
+    } catch (error) {
+      ui.applyGuestContext({ valido: false });
+      showError(error.message || 'No se pudo validar el codigo. Revisa tu conexion e intenta de nuevo.');
+      ui.setGuestStatus('No fue posible validar el codigo.', 'error');
+    }
+  }
+
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    if (!validatedGuest) {
+      showError('No puedes enviar RSVP sin un codigo valido.');
+      return;
+    }
+
+    if (isSubmitting) {
+      return;
+    }
+
+    hideError();
+    isSubmitting = true;
+    setSubmitButtonState(true, 'Enviando...');
+
+    try {
+      const payload = validateFormData(validatedGuest);
+      const serverResult = await sendRsvp(payload);
+
+      if (!serverResult || serverResult.success !== true) {
+        throw new Error((serverResult && serverResult.message) ? serverResult.message : 'No se pudo confirmar el registro en servidor.');
+      }
+
+      sessionStorage.setItem(getSubmitStorageKey(validatedGuest.codigo), JSON.stringify({
+        requestId: payload.requestId,
+        timestamp: Date.now()
+      }));
+
+      showSuccess(payload, serverResult.message);
+    } catch (error) {
+      showError(error.message || 'Ocurrio un error al enviar tu confirmacion. Intenta nuevamente.');
+    } finally {
+      isSubmitting = false;
+      setSubmitButtonState(false, 'Enviar Confirmacion');
+    }
+  });
+
+  const asistenciaRadios = document.querySelectorAll('input[name="asistencia"]');
+  asistenciaRadios.forEach(function (radio) {
+    radio.addEventListener('change', function () {
+      ui.toggleAttendanceFields(this.value);
+    });
+  });
+
+  initializeGuestFlow();
 });
-
-/* ============================================
-   GOOGLE APPS SCRIPT (Pega esto en script.google.com)
-   ============================================
-
-function doPost(e) {
-  // Configurar CORS
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
-
-  // Si es preflight (OPTIONS)
-  if (e.parameter && e.parameter.method === 'OPTIONS') {
-    return ContentService.createTextOutput('')
-      .setHeaders(headers);
-  }
-
-  try {
-    // Parsear datos
-    const datos = JSON.parse(e.postData.contents);
-
-    // ID de tu Google Sheet (reemplaza con el tuyo)
-    const SHEET_ID = '[TU_SHEET_ID_AQUI]';
-    const sheet = SpreadsheetApp.openById(SHEET_ID).getActiveSheet();
-
-    // Agregar fila
-    sheet.appendRow([
-      new Date(),                    // Fecha
-      datos.nombre || '',            // Nombre
-      datos.asistencia || '',        // Asistencia
-      datos.cantidad || '',          // Cantidad
-      datos.nombresAsistentes || '', // Nombres asistentes
-      datos.alergias || '',          // Alergias
-      datos.mensaje || ''            // Mensaje
-    ]);
-
-    return ContentService.createTextOutput(JSON.stringify({
-      success: true,
-      message: 'Datos guardados correctamente'
-    }))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeaders(headers);
-
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({
-      success: false,
-      error: error.toString()
-    }))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeaders(headers);
-  }
-}
-
-function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({
-    status: 'OK',
-    message: 'El servicio está funcionando correctamente'
-  }))
-  .setMimeType(ContentService.MimeType.JSON);
-}
-
-*/

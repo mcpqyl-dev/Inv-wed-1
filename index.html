@@ -199,11 +199,16 @@
             <div class="rsvp-container">
                 <h3 class="seccion-titulo">Confirmación de Asistencia</h3>
                 <p class="rsvp-subtitulo">Por favor confirma tu asistencia antes del [fecha límite]</p>
+                <div id="guest-status" class="guest-status" aria-live="polite">
+                    <p id="guest-status-text">Validando invitación...</p>
+                </div>
 
                 <form id="rsvp-form" class="rsvp-form">
+                    <input type="hidden" id="rsvp-codigo" name="codigo" value="">
                     <div class="form-grupo">
                         <label for="rsvp-nombre">Nombre completo</label>
-                        <input type="text" id="rsvp-nombre" name="nombre" placeholder="Tu nombre completo" required>
+                        <input type="text" id="rsvp-nombre" name="nombre" placeholder="Tu nombre completo" required aria-describedby="nombre-ayuda" autocomplete="name">
+                        <small id="nombre-ayuda" class="ayuda-texto">Se completa desde tu código de invitación.</small>
                     </div>
 
                     <div class="form-grupo">
@@ -225,9 +230,9 @@
                     <div class="form-grupo" id="grupo-cantidad">
                         <label for="rsvp-cantidad">Cantidad de asistentes (máx. <span id="max-pases">[X]</span>)</label>
                         <div class="cantidad-selector">
-                            <button type="button" class="cantidad-btn" id="btn-menos">−</button>
+                            <button type="button" class="cantidad-btn" id="btn-menos" aria-label="Disminuir cantidad de asistentes">−</button>
                             <input type="number" id="rsvp-cantidad" name="cantidad" min="1" max="10" value="1" readonly>
-                            <button type="button" class="cantidad-btn" id="btn-mas">+</button>
+                            <button type="button" class="cantidad-btn" id="btn-mas" aria-label="Aumentar cantidad de asistentes">+</button>
                         </div>
                     </div>
 
@@ -236,7 +241,7 @@
                         <textarea id="rsvp-nombres-asistentes" name="nombres_asistentes" rows="3" placeholder="Escribe los nombres de todos los asistentes..."></textarea>
                     </div>
 
-                    <div class="form-grupo">
+                    <div class="form-grupo" id="grupo-alergias">
                         <label for="rsvp-alergias">Restricciones alimentarias o alergias</label>
                         <textarea id="rsvp-alergias" name="alergias" rows="2" placeholder="Vegetariano, vegano, alergias, etc. (opcional)"></textarea>
                     </div>
@@ -246,14 +251,14 @@
                         <textarea id="rsvp-mensaje" name="mensaje" rows="3" placeholder="Déjanos un mensaje... (opcional)"></textarea>
                     </div>
 
-                    <button type="submit" class="rsvp-boton" id="rsvp-boton">
+                    <button type="submit" class="rsvp-boton" id="rsvp-boton" aria-label="Confirmar asistencia">
                         <span class="boton-texto">Enviar Confirmación</span>
                         <span class="boton-icono">✉</span>
                     </button>
                 </form>
 
                 <!-- Mensaje de éxito -->
-                <div id="rsvp-exito" class="rsvp-exito hidden">
+                <div id="rsvp-exito" class="rsvp-exito hidden" aria-live="polite">
                     <div class="exito-icono">✓</div>
                     <h4>¡Gracias!</h4>
                     <p>Tu confirmación ha sido enviada correctamente.</p>
@@ -261,7 +266,7 @@
                 </div>
 
                 <!-- Mensaje de error -->
-                <div id="rsvp-error" class="rsvp-error hidden">
+                <div id="rsvp-error" class="rsvp-error hidden" aria-live="assertive">
                     <div class="error-icono">✕</div>
                     <h4>Ups, algo salió mal</h4>
                     <p id="error-mensaje">Por favor intenta de nuevo más tarde.</p>
@@ -284,6 +289,7 @@
     <!-- Confetti container -->
     <div id="confetti-container"></div>
 
+    <script src="js/config.js"></script>
     <script src="js/main.js"></script>
     <script src="js/google-sheets.js"></script>
 </body>

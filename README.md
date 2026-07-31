@@ -1,196 +1,190 @@
-# 💌 Invitación de Boda — Web Romántica Botánica
+# Invitacion de Boda Digital - Guia de Produccion
 
-Una invitación de boda web interactiva con estilo romántico botánico (verde salvia / terracota), sobre animado con sello de cera, y confirmación de asistencia integrada con Google Sheets.
+Proyecto de invitacion web con sobre animado, RSVP y registro en Google Sheets.
 
----
+La experiencia visual original se mantiene, pero ahora el flujo recomendado es por codigo unico:
 
-## 📁 Estructura del Proyecto
+?codigo=ABC123
 
-```
-invitacion-boda/
-├── index.html              # Página principal
-├── css/
-│   └── style.css           # Estilos (paleta salvia/terracota)
-├── js/
-│   ├── main.js             # Lógica de la interfaz
-│   └── google-sheets.js    # Integración con Google Sheets
-├── assets/
-│   ├── images/             # Fotos de los novios
-│   └── fonts/              # Fuentes personalizadas (opcional)
-└── README.md               # Este archivo
-```
+## Estructura del proyecto
 
----
+- index.html
+- css/style.css
+- js/config.js
+- js/main.js
+- js/google-sheets.js
+- apps-script/Code.gs
 
-## 🎨 Características
+## Arquitectura actual
 
-- **Sobre animado** con sello de cera terracota interactivo
-- **Personalización por URL**: `?nombre=Juan+Pérez&pases=2`
-- **Diseño responsive** para móvil y desktop
-- **Paleta romántica botánica**: verde salvia, terracota, crema, dorado
-- **Galería de fotos** con grid adaptable
-- **Itinerario** con línea de tiempo visual
-- **Formulario RSVP** con selector de cantidad y validación
-- **Integración con Google Sheets** para recopilar confirmaciones
-- **Animaciones suaves** al scroll y confetti al abrir
-- **Fuentes elegantes**: Cormorant Garamond (títulos) + Montserrat (cuerpo)
+Flujo:
 
----
+1. Frontend obtiene codigo desde URL.
+2. Frontend valida codigo con Google Apps Script (GET action=guest).
+3. Apps Script busca codigo en hoja Invitados.
+4. Frontend muestra nombre y pases autorizados.
+5. Invitado confirma RSVP.
+6. Frontend envia RSVP por POST a Apps Script.
+7. Apps Script valida de nuevo codigo/estado/pases.
+8. Apps Script guarda o actualiza en hoja Respuestas (upsert por codigo).
 
-## 🚀 Cómo usar en GitHub Pages
+## 1) Configurar Google Sheets
 
-### 1. Sube los archivos a GitHub
+Crear una hoja de calculo y dos pestañas exactas:
 
-1. Crea un nuevo repositorio en GitHub
-2. Sube todos los archivos de esta carpeta
-3. Ve a **Settings** > **Pages**
-4. En "Source" selecciona **Deploy from a branch**
-5. Selecciona la rama `main` y carpeta `/ (root)`
-6. Guarda y espera unos minutos
-7. Tu invitación estará en `https://TU-USUARIO.github.io/NOMBRE-REPO/`
+### Hoja Invitados
 
-### 2. Personaliza los placeholders
+Columnas (fila 1):
 
-Abre `index.html` y reemplaza todos los textos entre corchetes:
+- Codigo
+- Nombre
+- PasesAutorizados
+- Estado
+- Observaciones
 
-| Placeholder | Descripción |
-|-------------|-------------|
-| `[Nombres de los Novios]` | Título de la página y footer |
-| `[Nombre Novia]` / `[Nombre Novio]` | Nombres en el header |
-| `[Nombre del Invitado]` | Nombre por defecto (se sobreescribe con URL) |
-| `[X]` | Cantidad de pases por defecto |
-| `[Sábado]` / `[15]` / `[Septiembre]` / `[2026]` | Fecha de la boda |
-| `[Nombre del Lugar / Hacienda]` | Lugar del evento |
-| `[Dirección completa del evento]` | Dirección |
-| `[4:00 PM]` / `[6:00 PM]` | Horarios |
-| `[Formal / Semi-formal / Casual elegante]` | Dress code |
-| `[Nota adicional sobre vestimenta]` | Nota del dress code |
-| `[Mensaje sobre regalos...]` | Texto de regalos |
-| `[Nombre de la tienda]` / `[XXXXX]` | Mesa de regalos |
-| `[fecha límite]` | Fecha límite para confirmar |
-| `[HashtagDeLaBoda]` | Hashtag para redes sociales |
+Ejemplo:
 
-### 3. Agrega tus fotos
+- ABC123 | Juan Perez | 2 | Activo |
+- XYZ456 | Maria Lopez | 4 | Activo |
 
-Reemplaza las imágenes en `assets/images/`:
-- `novios-1.jpg` — Foto principal (grande)
-- `novios-2.jpg` — Foto secundaria
-- `novios-3.jpg` — Foto secundaria
-- `novios-4.jpg` — Foto ancha
+### Hoja Respuestas
 
-> **Tip**: Si no agregas fotos, se mostrarán imágenes de placeholder de Unsplash.
+Columnas (fila 1):
 
----
+- Fecha
+- RequestId
+- Codigo
+- NombreInvitado
+- Asistencia
+- CantidadConfirmada
+- Acompanantes
+- RestriccionesAlimentarias
+- Mensaje
 
-## 📧 Enviar invitaciones personalizadas
+Notas:
 
-Puedes enviar un link diferente a cada invitado con sus datos:
+- Si Asistencia = no, CantidadConfirmada debe quedar en 0.
+- El script ya controla esto server-side.
 
-```
-https://TU-USUARIO.github.io/invitacion-boda/?nombre=María+García&pases=2
-https://TU-USUARIO.github.io/invitacion-boda/?nombre=Carlos+López&pases=4
-https://TU-USUARIO.github.io/invitacion-boda/?nombre=Familia+Pérez&pases=5
-```
+## 2) Configurar Google Apps Script
 
-### Parámetros disponibles:
+1. Ir a https://script.google.com
+2. Crear proyecto nuevo.
+3. Copiar contenido de apps-script/Code.gs al archivo Code.gs del proyecto.
+4. Reemplazar la constante SHEET_ID con el ID real de tu Google Sheet.
+5. Guardar.
 
-| Parámetro | Descripción | Ejemplo |
-|-----------|-------------|---------|
-| `nombre` | Nombre del invitado | `nombre=Juan+Pérez` |
-| `pases` | Cantidad de pases asignados | `pases=3` |
+## 3) Publicar el Web App
 
----
+1. Deploy > New deployment.
+2. Tipo: Web app.
+3. Execute as: Me.
+4. Who has access: Anyone.
+5. Deploy y copiar URL final (termina en /exec).
 
-## 📊 Configurar Google Sheets
+## 4) Conectar frontend con Apps Script
 
-### Paso 1: Crear la hoja de cálculo
+Editar js/config.js:
 
-1. Ve a [Google Sheets](https://sheets.google.com) y crea una nueva hoja
-2. En la primera fila, agrega estos encabezados:
+- api.webAppUrl = URL del deployment /exec.
 
-```
-A1: Fecha          B1: Nombre          C1: Asistencia
-D1: Cantidad       E1: NombresAsistentes   F1: Alergias
-G1: Mensaje
-```
+Recomendado:
 
-3. Copia el **ID de la hoja** de la URL:
-   ```
-   https://docs.google.com/spreadsheets/d/1ABC123xyz/edit
-                              └─ ESTO ES EL ID ─┘
-   ```
+- allowNoCorsFallback = false
 
-### Paso 2: Crear el Apps Script
+Con esto el frontend solo muestra exito cuando recibe JSON success=true.
 
-1. Ve a [Google Apps Script](https://script.google.com)
-2. Crea un **nuevo proyecto**
-3. Borra el código por defecto y pega el código que está en `js/google-sheets.js` (sección `GOOGLE APPS SCRIPT`)
-4. Reemplaza `[TU_SHEET_ID_AQUI]` con el ID de tu hoja
-5. Guarda el proyecto (Ctrl+S)
+## 5) Generar codigos unicos
 
-### Paso 3: Desplegar (Deploy)
+Recomendaciones:
 
-1. Haz clic en **Deploy** (Desplegar) > **New deployment**
-2. En "Select type" elige **Web app**
-3. Configura:
-   - **Description**: `Invitación Boda RSVP`
-   - **Execute as**: `Me`
-   - **Who has access**: `Anyone`
-4. Haz clic en **Deploy**
-5. Autoriza los permisos (puede que Google muestre una advertencia de "app no verificada", haz clic en "Advanced" > "Go to...")
-6. Copia la **URL de la web app**
+- Usar codigos alfanumericos de 6 a 10 caracteres.
+- No reutilizar codigos.
+- Mantener Estado = Activo solo para invitados habilitados.
 
-### Paso 4: Conectar con la invitación
+Ejemplo de formato:
 
-1. Abre `js/google-sheets.js`
-2. Reemplaza:
-   ```javascript
-   const GOOGLE_SCRIPT_URL = '[PEGA_AQUI_TU_URL_DE_GOOGLE_APPS_SCRIPT]';
-   ```
-   con tu URL real.
-3. Sube el archivo actualizado a GitHub
-4. ¡Listo! Las confirmaciones llegarán directo a tu Google Sheet
+- FAM001
+- ABR24X
+- NOVIOS10
 
----
+## 6) Enviar invitaciones
 
-## 🎨 Personalizar colores
+Usar links por invitado/grupo:
 
-Si quieres ajustar la paleta, edita las variables CSS en `css/style.css`:
+- https://tu-dominio.com/?codigo=ABC123
+- https://tu-dominio.com/?codigo=XYZ456
 
-```css
-:root {
-    --salvia: #9CAF88;        /* Verde principal */
-    --terracota: #E2725B;     /* Acento cálido */
-    --crema: #F5F0E8;         /* Fondo */
-    --dorado: #D4A574;        /* Detalles dorados */
-    --marron: #5C4033;        /* Texto principal */
-}
-```
+No usar en produccion:
 
----
+- ?nombre=...
+- ?pases=...
 
-## 📱 Compatibilidad
+## 7) Comportamiento RSVP
 
-- ✅ Chrome / Edge / Safari / Firefox
-- ✅ iOS Safari (iPhone/iPad)
-- ✅ Android Chrome
-- ✅ Responsive (320px - 4K)
+- Si responde si:
+   - Se habilita cantidad (maximo pases autorizados).
+   - Se muestran acompanantes y restricciones alimentarias.
+- Si responde no:
+   - Se ocultan cantidad, acompanantes y restricciones.
+   - Se envia cantidadConfirmada = 0.
 
----
+## 8) Duplicados y actualizaciones
 
-## 💡 Tips adicionales
+- Se genera requestId unico por envio.
+- Apps Script hace upsert por Codigo:
+   - Si el codigo ya existe en Respuestas, actualiza esa fila.
+   - Si no existe, crea nueva fila.
+- Si llega el mismo requestId, evita duplicado exacto.
 
-- **Música de fondo**: Puedes agregar una etiqueta `<audio>` en el HTML
-- **Contador regresivo**: Descomenta la sección en `main.js`
-- **Mapa de ubicación**: Agrega un iframe de Google Maps en la sección de lugar
-- **Múltiples idiomas**: Duplica el HTML y ajusta el texto
+## 9) Permisos y seguridad
 
----
+- No poner secretos en frontend.
+- La validacion importante esta en servidor:
+   - Codigo valido.
+   - Invitado activo.
+   - CantidadConfirmada <= PasesAutorizados.
 
-## 📄 Licencia
+## 10) Pruebas recomendadas
 
-Este proyecto es para uso personal en tu boda. ¡Disfrútalo! 💕
+Probar como minimo:
 
----
+1. Codigo valido con 1 pase.
+2. Codigo valido con 2 pases.
+3. Codigo valido con 4 pases.
+4. Codigo invalido.
+5. Codigo vacio.
+6. Invitado no asiste.
+7. Intento de exceder pases.
+8. Doble clic en confirmar.
+9. Error de Apps Script.
+10. Error de red.
+11. Recarga despues de confirmar.
+12. Movil (320/375/390/414).
+13. Desktop.
 
-¿Preguntas o problemas? Revisa la consola del navegador (F12) para ver mensajes de ayuda.
+## 11) Mantenimiento
+
+- Para agregar invitados: insertar filas en hoja Invitados.
+- Para desactivar un codigo: Estado distinto de Activo.
+- Para revisar confirmaciones: hoja Respuestas.
+
+## 12) Limitacion tecnica importante
+
+Google Apps Script puede presentar restricciones CORS dependiendo del deployment y dominio.
+
+Por eso:
+
+- El modo recomendado es CORS con respuesta JSON verificable.
+- Solo activar allowNoCorsFallback en js/config.js si no tienes alternativa.
+- En modo no-cors no es posible confirmar de forma 100% confiable desde navegador que Sheets escribio la fila.
+
+## 13) Checklist rapido de salida
+
+1. SHEET_ID correcto en Apps Script.
+2. Web App publicado en modo Anyone.
+3. URL /exec pegada en js/config.js.
+4. Hojas Invitados y Respuestas con encabezados correctos.
+5. Al menos 1 codigo Activo cargado.
+6. Pruebas de casos 1-13 completadas.
+7. Verificacion visual en movil y desktop.
