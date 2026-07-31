@@ -75,6 +75,17 @@ img {
     padding: 2rem;
 }
 
+.sobre-section.loading-state .sobre-container {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    pointer-events: none;
+}
+
+.sobre-section .sobre-container {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
 /* Fondo botánico decorativo */
 .fondo-botanico {
     position: absolute;

@@ -64,6 +64,10 @@ document.addEventListener('DOMContentLoaded', function () {
         envelopeReady = Boolean(ready);
         envelopeCanOpen = Boolean(canOpen);
 
+        if (sobreSection) {
+            sobreSection.classList.toggle('loading-state', !envelopeReady);
+        }
+
         if (!sobre) return;
 
         sobre.classList.toggle('sobre-bloqueado', !envelopeCanOpen);
