@@ -235,6 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!result || result.success !== true || !result.invitado) {
       validatedGuest = null;
       ui.applyGuestContext({ valido: false });
+      ui.setEnvelopeState(true, false, 'Codigo invalido o inactivo.');
       showError((result && result.message) ? result.message : 'Codigo de invitacion invalido o inactivo.');
       return;
     }
@@ -253,6 +254,7 @@ document.addEventListener('DOMContentLoaded', function () {
       pasesAutorizados: validatedGuest.pasesAutorizados,
       valido: true
     });
+    ui.setEnvelopeState(true, true, 'Toca el sello para abrir la invitacion');
 
     hideError();
 
@@ -278,22 +280,26 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       ui.applyGuestContext({ valido: false });
+      ui.setEnvelopeState(true, false, 'Falta codigo de invitacion en el enlace.');
       showError('No se encontro codigo en la URL. Usa un enlace con ?codigo=ABC123.');
       return;
     }
 
     if (!isValidCodeFormat(codeFromUrl)) {
       ui.applyGuestContext({ valido: false });
+      ui.setEnvelopeState(true, false, 'El formato del codigo no es valido.');
       showError('El formato del codigo no es valido.');
       return;
     }
 
     try {
       ui.setGuestStatus('Validando invitacion...', 'loading');
+      ui.setEnvelopeState(false, false, 'Validando invitacion...');
       const result = await validateGuestByCode(codeFromUrl);
       applyGuestValidationResult(result, codeFromUrl);
     } catch (error) {
       ui.applyGuestContext({ valido: false });
+      ui.setEnvelopeState(true, false, 'No fue posible validar el codigo.');
       showError(error.message || 'No se pudo validar el codigo. Revisa tu conexion e intenta de nuevo.');
       ui.setGuestStatus('No fue posible validar el codigo.', 'error');
     }

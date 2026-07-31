@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const sobre = document.getElementById('sobre');
     const selloCera = document.getElementById('sello-cera');
+    const sobreHint = document.querySelector('.sobre-hint');
     const sobreSection = document.getElementById('sobre-section');
     const invitacionSection = document.getElementById('invitacion-section');
     const guestStatus = document.getElementById('guest-status');
@@ -35,6 +36,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const rsvpBoton = document.getElementById('rsvp-boton');
 
     let sobreAbierto = false;
+    let envelopeReady = false;
+    let envelopeCanOpen = false;
     let currentGuest = {
         codigo: '',
         nombre: safeDefaultName,
@@ -55,6 +58,18 @@ document.addEventListener('DOMContentLoaded', function () {
             guestStatus.classList.add('status-' + variant);
         }
         guestStatusText.textContent = message;
+    }
+
+    function setEnvelopeState(ready, canOpen, message) {
+        envelopeReady = Boolean(ready);
+        envelopeCanOpen = Boolean(canOpen);
+
+        if (!sobre) return;
+
+        sobre.classList.toggle('sobre-bloqueado', !envelopeCanOpen);
+        if (sobreHint && message) {
+            sobreHint.textContent = message;
+        }
     }
 
     function setRsvpEnabled(enabled) {
@@ -126,6 +141,20 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function openInvitation() {
+        if (!envelopeReady) {
+            if (sobreHint) {
+                sobreHint.textContent = 'Validando invitacion, espera un momento...';
+            }
+            return;
+        }
+
+        if (!envelopeCanOpen) {
+            if (sobreHint) {
+                sobreHint.textContent = 'No se pudo validar tu codigo. Revisa el enlace.';
+            }
+            return;
+        }
+
         if (sobreAbierto) return;
         sobreAbierto = true;
         sobre.classList.add('abierto');
@@ -250,14 +279,20 @@ document.addEventListener('DOMContentLoaded', function () {
         setGuestStatus: setGuestStatus,
         setRsvpEnabled: setRsvpEnabled,
         toggleAttendanceFields: toggleAttendanceFields,
+        setEnvelopeState: setEnvelopeState,
         getCurrentGuest: function () {
             return { ...currentGuest };
         }
     };
 
+    nombreCarta.textContent = 'Validando invitado...';
+    pasesCarta.textContent = '...';
+    maxPasesLabel.textContent = '...';
+
     updatePassesUI(safeDefaultPasses);
     setGuestStatus('Validando invitacion...', 'loading');
     setRsvpEnabled(false);
+    setEnvelopeState(false, false, 'Validando invitacion...');
 
     setupQuantitySelector();
     setupAttendanceToggle();
