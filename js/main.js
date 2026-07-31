@@ -176,11 +176,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         setTimeout(function () {
-            sobreSection.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+            sobreSection.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
             sobreSection.style.opacity = '0';
             sobreSection.style.transform = 'scale(0.9)';
-            setTimeout(revealContent, 600);
-        }, 1800);
+            setTimeout(revealContent, 240);
+        }, 120);
     }
 
     function launchConfetti() {
@@ -300,7 +300,6 @@ document.addEventListener('DOMContentLoaded', function () {
     setupParallax();
 
     if (selloCera) selloCera.addEventListener('click', openInvitation);
-    if (sobre) sobre.addEventListener('click', openInvitation);
 
     console.log('Invitacion cargada. Esperando validacion por codigo unico.');
 });
