@@ -38,6 +38,22 @@ document.addEventListener('DOMContentLoaded', function () {
     return params.get(name);
   }
 
+  function getUrlParamInsensitive(possibleNames) {
+    const params = new URLSearchParams(window.location.search);
+    const names = possibleNames.map(function (item) {
+      return String(item).toLowerCase();
+    });
+
+    for (const entry of params.entries()) {
+      const key = String(entry[0] || '').toLowerCase();
+      if (names.indexOf(key) !== -1) {
+        return String(entry[1] || '').trim();
+      }
+    }
+
+    return null;
+  }
+
   function withTimeout(promise, timeoutMs) {
     return new Promise(function (resolve, reject) {
       const timer = setTimeout(function () {
@@ -270,7 +286,11 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   async function initializeGuestFlow() {
-    const codeFromUrl = (getUrlParam('codigo') || '').trim();
+    const codeFromUrl = (
+      getUrlParamInsensitive(['codigo', 'code', 'id', 'invitado', 'guest', 'cod']) ||
+      getUrlParam('codigo') ||
+      ''
+    ).trim();
 
     if (!codeFromUrl) {
       const legacy = parseLegacyDataIfEnabled();
