@@ -354,8 +354,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const mapsUrl = 'https://www.google.com/maps?q=' + encodeURIComponent(lat + ',' + lng) + '&z=' + encodeURIComponent(String(zoom));
+        const isMobileDevice = window.matchMedia('(max-width: 768px)').matches || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
         abrirMapaBtn.addEventListener('click', function () {
+            // En moviles, abrir en la misma pestana evita dejar una ventana en blanco
+            // cuando el sistema redirige la URL hacia la app de Google Maps.
+            if (isMobileDevice) {
+                window.location.assign(mapsUrl);
+                return;
+            }
+
             const popup = window.open(
                 mapsUrl,
                 'googleMapsPopup',
