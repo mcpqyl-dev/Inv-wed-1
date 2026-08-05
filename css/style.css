@@ -126,6 +126,7 @@ img {
     margin: 0 auto 2rem;
     cursor: pointer;
     perspective: 1000px;
+    transform-style: preserve-3d;
     border-radius: 10px;
 }
 
@@ -178,8 +179,11 @@ img {
     left: 0;
     right: 0;
     height: 52%;
-    transform-origin: top center;
-    transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: 50% 0%;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    will-change: transform;
+    transition: transform 1.05s cubic-bezier(0.22, 0.7, 0.25, 1);
     z-index: 3;
 }
 
@@ -191,6 +195,7 @@ img {
     clip-path: polygon(0 0, 100% 0, 50% 100%);
     border-radius: 10px 10px 0 0;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+    backface-visibility: hidden;
 }
 
 .solapa-interior {
@@ -201,9 +206,10 @@ img {
     height: 100%;
     background: linear-gradient(180deg, #f0dfd2 0%, #e8d3c5 100%);
     clip-path: polygon(0 0, 100% 0, 50% 100%);
-    transform: scaleY(-1);
-    opacity: 0;
-    transition: opacity 0.6s ease;
+    transform: rotateX(180deg);
+    backface-visibility: hidden;
+    opacity: 1;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
 }
 
 .sobre-frente-contenido {
@@ -338,11 +344,7 @@ img {
 
 /* ─── Animación de Apertura ─── */
 .sobre.abierto .solapa {
-    transform: rotateX(180deg);
-}
-
-.sobre.abierto .solapa-interior {
-    opacity: 1;
+    transform: rotateX(-172deg) translateY(-2px);
 }
 
 .sobre.abierto .sello-cera {
