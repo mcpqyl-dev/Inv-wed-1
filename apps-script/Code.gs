@@ -98,7 +98,6 @@ function doPost(e) {
     if (normalizedPayload.asistencia === 'no') {
       normalizedPayload.cantidadConfirmada = 0;
       normalizedPayload.acompanantes = '';
-      normalizedPayload.restriccionesAlimentarias = '';
     }
 
     const responseSheet = getSheetByName(SHEET_RESPUESTAS);
@@ -111,7 +110,6 @@ function doPost(e) {
       asistencia: normalizedPayload.asistencia,
       cantidadConfirmada: normalizedPayload.cantidadConfirmada,
       acompanantes: normalizedPayload.acompanantes,
-      restriccionesAlimentarias: normalizedPayload.restriccionesAlimentarias,
       mensaje: normalizedPayload.mensaje
     });
 
@@ -137,7 +135,6 @@ function normalizePayload(body) {
     asistencia: String(body.asistencia || '').trim().toLowerCase(),
     cantidadConfirmada: Number(body.cantidadConfirmada || 0),
     acompanantes: String(body.acompanantes || '').trim(),
-    restriccionesAlimentarias: String(body.restriccionesAlimentarias || '').trim(),
     mensaje: String(body.mensaje || '').trim()
   };
 }
@@ -213,8 +210,7 @@ function findLatestResponseByCode(code) {
         asistencia: String(row[4] || '').trim(),
         cantidadConfirmada: Number(row[5] || 0),
         acompanantes: String(row[6] || '').trim(),
-        restriccionesAlimentarias: String(row[7] || '').trim(),
-        mensaje: String(row[8] || '').trim()
+        mensaje: String(row[7] || '').trim()
       };
     }
   }
@@ -236,7 +232,7 @@ function upsertResponse(sheet, payload) {
         return { updated: true, skipped: true };
       }
 
-      sheet.getRange(i + 1, 1, 1, 9).setValues([[
+      sheet.getRange(i + 1, 1, 1, 8).setValues([[
         now,
         payload.requestId,
         payload.codigo,
@@ -244,7 +240,6 @@ function upsertResponse(sheet, payload) {
         payload.asistencia,
         payload.cantidadConfirmada,
         payload.acompanantes,
-        payload.restriccionesAlimentarias,
         payload.mensaje
       ]]);
 
@@ -260,7 +255,6 @@ function upsertResponse(sheet, payload) {
     payload.asistencia,
     payload.cantidadConfirmada,
     payload.acompanantes,
-    payload.restriccionesAlimentarias,
     payload.mensaje
   ]);
 
@@ -281,7 +275,6 @@ function ensureResponsesHeaders(sheet) {
     'Asistencia',
     'CantidadConfirmada',
     'Acompanantes',
-    'RestriccionesAlimentarias',
     'Mensaje'
   ];
   ensureHeaders(sheet, expected);

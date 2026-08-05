@@ -27,14 +27,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const pasesCarta = document.getElementById('cantidad-pases');
     const maxPasesLabel = document.getElementById('max-pases');
     const codigoInput = document.getElementById('rsvp-codigo');
-    const nombreInput = document.getElementById('rsvp-nombre');
     const cantidadInput = document.getElementById('rsvp-cantidad');
     const nombresLineasContainer = document.getElementById('rsvp-nombres-lineas');
 
     const radiosAsistencia = document.querySelectorAll('input[name="asistencia"]');
     const grupoCantidad = document.getElementById('grupo-cantidad');
     const grupoNombres = document.getElementById('grupo-nombres');
-    const grupoAlergias = document.getElementById('grupo-alergias');
     const btnMenos = document.getElementById('btn-menos');
     const btnMas = document.getElementById('btn-mas');
     const rsvpForm = document.getElementById('rsvp-form');
@@ -145,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!rsvpForm) return;
         const controls = rsvpForm.querySelectorAll('input, textarea, button');
         controls.forEach((control) => {
-            if (control.id === 'rsvp-nombre' || control.id === 'rsvp-codigo') return;
+            if (control.id === 'rsvp-codigo') return;
             control.disabled = !enabled;
         });
         if (rsvpBoton) {
@@ -221,10 +219,6 @@ document.addEventListener('DOMContentLoaded', function () {
             grupoNombres.classList.toggle(hiddenClass, hideByAttendance || hideByPasses);
         }
 
-        if (grupoAlergias) {
-            grupoAlergias.classList.toggle(hiddenClass, hideByAttendance);
-        }
-
         if (hideByAttendance || hideByPasses) {
             cantidadInput.value = '1';
             clearCompanionNameInputs();
@@ -248,20 +242,15 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         nombreCarta.textContent = currentGuest.nombre;
-        nombreInput.value = currentGuest.nombre;
         codigoInput.value = currentGuest.codigo;
 
         if (isValid) {
-            nombreInput.readOnly = true;
-            nombreInput.setAttribute('aria-readonly', 'true');
             updatePassesUI(currentGuest.pasesAutorizados);
             const selectedAttendance = document.querySelector('input[name="asistencia"]:checked');
             toggleAttendanceFields(selectedAttendance ? selectedAttendance.value : 'si');
-            setGuestStatus('Invitacion validada para ' + currentGuest.nombre + '.', 'ok');
+            setGuestStatus('Invitacion validada.', 'ok');
             setRsvpEnabled(true);
         } else {
-            nombreInput.readOnly = false;
-            nombreInput.removeAttribute('aria-readonly');
             updatePassesUI(safeDefaultPasses);
             toggleAttendanceFields('no');
             setGuestStatus('Codigo invalido o inactivo. No es posible confirmar asistencia.', 'error');

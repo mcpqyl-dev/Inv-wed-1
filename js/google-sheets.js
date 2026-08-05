@@ -17,11 +17,9 @@ document.addEventListener('DOMContentLoaded', function () {
   const errorMensaje = document.getElementById('error-mensaje');
   const exitoDetalles = document.getElementById('exito-detalles');
 
-  const nombreInput = document.getElementById('rsvp-nombre');
   const codigoInput = document.getElementById('rsvp-codigo');
   const cantidadInput = document.getElementById('rsvp-cantidad');
   const nombresLineasContainer = document.getElementById('rsvp-nombres-lineas');
-  const alergiasInput = document.getElementById('rsvp-alergias');
   const mensajeInput = document.getElementById('rsvp-mensaje');
 
   if (!form || !ui) return;
@@ -183,8 +181,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const asistencia = attendance.value;
-    const nombre = (nombreInput.value || '').trim();
-    if (!nombre) {
+    if (!guest || !guest.nombre) {
       throw new Error('No se encontro un nombre valido para esta invitacion.');
     }
 
@@ -233,7 +230,6 @@ document.addEventListener('DOMContentLoaded', function () {
       asistencia: asistencia,
       cantidadConfirmada: confirmedCount,
       acompanantes: asistencia === 'si' ? companionNamesCsv : '',
-      restriccionesAlimentarias: asistencia === 'si' ? (alergiasInput.value || '').trim() : '',
       mensaje: (mensajeInput.value || '').trim(),
       source: 'web-invitacion'
     };
