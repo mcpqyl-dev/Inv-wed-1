@@ -922,6 +922,16 @@ img {
     color: var(--marron-claro);
 }
 
+.nombres-lineas {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.nombre-asistente-input {
+    width: 100%;
+}
+
 /* Radio buttons personalizados */
 .radio-grupo {
     display: flex;

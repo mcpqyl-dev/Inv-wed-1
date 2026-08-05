@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const nombreInput = document.getElementById('rsvp-nombre');
   const codigoInput = document.getElementById('rsvp-codigo');
   const cantidadInput = document.getElementById('rsvp-cantidad');
-  const acompanantesInput = document.getElementById('rsvp-nombres-asistentes');
+  const nombresLineasContainer = document.getElementById('rsvp-nombres-lineas');
   const alergiasInput = document.getElementById('rsvp-alergias');
   const mensajeInput = document.getElementById('rsvp-mensaje');
 
@@ -189,6 +189,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const maxPasses = parseInt(String(guest.pasesAutorizados), 10) || 1;
+    const hasMultiplePasses = maxPasses > 1;
     let confirmedCount = 0;
 
     if (asistencia === 'si') {
@@ -206,13 +207,32 @@ document.addEventListener('DOMContentLoaded', function () {
       confirmedCount = 0;
     }
 
+    let companionNamesCsv = '';
+    if (asistencia === 'si' && hasMultiplePasses) {
+      const enteredNames = [];
+      if (nombresLineasContainer) {
+        nombresLineasContainer.querySelectorAll('input').forEach(function (input) {
+          const value = (input.value || '').trim();
+          if (value) {
+            enteredNames.push(value);
+          }
+        });
+      }
+
+      if (enteredNames.length !== confirmedCount) {
+        throw new Error('Debes completar ' + confirmedCount + ' nombre(s) de asistentes.');
+      }
+
+      companionNamesCsv = enteredNames.join(', ');
+    }
+
     return {
       requestId: generateRequestId(),
       codigo: guest.codigo,
       nombreInvitado: guest.nombre,
       asistencia: asistencia,
       cantidadConfirmada: confirmedCount,
-      acompanantes: asistencia === 'si' ? (acompanantesInput.value || '').trim() : '',
+      acompanantes: asistencia === 'si' ? companionNamesCsv : '',
       restriccionesAlimentarias: asistencia === 'si' ? (alergiasInput.value || '').trim() : '',
       mensaje: (mensajeInput.value || '').trim(),
       source: 'web-invitacion'

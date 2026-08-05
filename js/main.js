@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const codigoInput = document.getElementById('rsvp-codigo');
     const nombreInput = document.getElementById('rsvp-nombre');
     const cantidadInput = document.getElementById('rsvp-cantidad');
+    const nombresLineasContainer = document.getElementById('rsvp-nombres-lineas');
 
     const radiosAsistencia = document.querySelectorAll('input[name="asistencia"]');
     const grupoCantidad = document.getElementById('grupo-cantidad');
@@ -48,6 +49,10 @@ document.addEventListener('DOMContentLoaded', function () {
         pasesAutorizados: safeDefaultPasses,
         valido: false
     };
+
+    function hasMultiplePasses() {
+        return clampPasses(currentGuest.pasesAutorizados) > 1;
+    }
 
     function clampPasses(value) {
         const parsed = parseInt(String(value), 10);
@@ -153,23 +158,80 @@ document.addEventListener('DOMContentLoaded', function () {
         pasesCarta.textContent = String(limited);
         maxPasesLabel.textContent = String(limited);
         cantidadInput.max = String(limited);
+        if (limited <= 1) {
+            cantidadInput.value = '1';
+        }
         if (parseInt(cantidadInput.value, 10) > limited) {
             cantidadInput.value = String(limited);
         }
     }
 
-    function toggleAttendanceFields(asistencia) {
-        const hideExtraFields = (uiConfig.ocultarCamposSiNoAsiste !== false) && asistencia === 'no';
-        const hiddenClass = 'hidden';
+    function clearCompanionNameInputs() {
+        if (!nombresLineasContainer) return;
+        nombresLineasContainer.innerHTML = '';
+    }
 
-        [grupoCantidad, grupoNombres, grupoAlergias].forEach((group) => {
-            if (!group) return;
-            group.classList.toggle(hiddenClass, hideExtraFields);
+    function renderCompanionNameInputs() {
+        if (!nombresLineasContainer) return;
+
+        const count = parseInt(cantidadInput.value, 10) || 1;
+        const namesToKeep = [];
+        nombresLineasContainer.querySelectorAll('input').forEach(function (input) {
+            namesToKeep.push((input.value || '').trim());
         });
 
-        if (hideExtraFields) {
-            cantidadInput.value = '1';
+        nombresLineasContainer.innerHTML = '';
+
+        for (let i = 0; i < count; i += 1) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'nombre-asistente-input';
+            input.id = 'rsvp-asistente-' + (i + 1);
+            input.name = 'asistente_' + (i + 1);
+            input.autocomplete = 'off';
+            const isMainGuestLine = i === 0;
+            input.placeholder = isMainGuestLine ? 'Nombre del invitado principal' : 'Nombre del asistente ' + (i + 1);
+            input.value = namesToKeep[i] || (isMainGuestLine ? currentGuest.nombre : '');
+            nombresLineasContainer.appendChild(input);
         }
+    }
+
+    function getCompanionNamesCSV() {
+        if (!nombresLineasContainer) return '';
+        const names = [];
+        nombresLineasContainer.querySelectorAll('input').forEach(function (input) {
+            const value = (input.value || '').trim();
+            if (value) {
+                names.push(value);
+            }
+        });
+        return names.join(', ');
+    }
+
+    function toggleAttendanceFields(asistencia) {
+        const hideByAttendance = (uiConfig.ocultarCamposSiNoAsiste !== false) && asistencia === 'no';
+        const hideByPasses = !hasMultiplePasses();
+        const hiddenClass = 'hidden';
+
+        if (grupoCantidad) {
+            grupoCantidad.classList.toggle(hiddenClass, hideByAttendance || hideByPasses);
+        }
+
+        if (grupoNombres) {
+            grupoNombres.classList.toggle(hiddenClass, hideByAttendance || hideByPasses);
+        }
+
+        if (grupoAlergias) {
+            grupoAlergias.classList.toggle(hiddenClass, hideByAttendance);
+        }
+
+        if (hideByAttendance || hideByPasses) {
+            cantidadInput.value = '1';
+            clearCompanionNameInputs();
+            return;
+        }
+
+        renderCompanionNameInputs();
     }
 
     function applyGuestContext(data) {
@@ -193,12 +255,15 @@ document.addEventListener('DOMContentLoaded', function () {
             nombreInput.readOnly = true;
             nombreInput.setAttribute('aria-readonly', 'true');
             updatePassesUI(currentGuest.pasesAutorizados);
+            const selectedAttendance = document.querySelector('input[name="asistencia"]:checked');
+            toggleAttendanceFields(selectedAttendance ? selectedAttendance.value : 'si');
             setGuestStatus('Invitacion validada para ' + currentGuest.nombre + '.', 'ok');
             setRsvpEnabled(true);
         } else {
             nombreInput.readOnly = false;
             nombreInput.removeAttribute('aria-readonly');
             updatePassesUI(safeDefaultPasses);
+            toggleAttendanceFields('no');
             setGuestStatus('Codigo invalido o inactivo. No es posible confirmar asistencia.', 'error');
             setRsvpEnabled(false);
         }
@@ -276,6 +341,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const current = parseInt(cantidadInput.value, 10) || 1;
             if (current > 1) {
                 cantidadInput.value = String(current - 1);
+                renderCompanionNameInputs();
             }
         });
 
@@ -284,6 +350,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const max = parseInt(cantidadInput.max, 10) || safeAbsoluteMax;
             if (current < max) {
                 cantidadInput.value = String(current + 1);
+                renderCompanionNameInputs();
             }
         });
     }
@@ -381,6 +448,7 @@ document.addEventListener('DOMContentLoaded', function () {
         setGuestStatus: setGuestStatus,
         setRsvpEnabled: setRsvpEnabled,
         toggleAttendanceFields: toggleAttendanceFields,
+        getCompanionNamesCSV: getCompanionNamesCSV,
         setEnvelopeState: setEnvelopeState,
         getCurrentGuest: function () {
             return { ...currentGuest };
