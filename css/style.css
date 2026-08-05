@@ -171,6 +171,50 @@ img {
     opacity: 0.38;
 }
 
+.sobre-papel {
+    position: absolute;
+    left: 50%;
+    bottom: 10%;
+    width: 74%;
+    height: 63%;
+    transform: translateX(-50%) translateY(14px);
+    background:
+        linear-gradient(180deg, #ffffff 0%, #f9f7f2 56%, #f0ede6 100%);
+    border-radius: 10px 10px 8px 8px;
+    box-shadow:
+        0 10px 22px rgba(17, 31, 28, 0.14),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+    border: 1px solid rgba(224, 220, 214, 0.95);
+    clip-path: polygon(0 16%, 100% 16%, 100% 100%, 0 100%);
+    z-index: 2;
+    opacity: 0;
+    transition: transform 1.05s cubic-bezier(0.22, 0.7, 0.25, 1), opacity 0.4s ease;
+}
+
+.sobre-papel::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 16%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(86, 118, 112, 0.28), transparent);
+}
+
+.sobre-papel::after {
+    content: '';
+    position: absolute;
+    left: 12%;
+    right: 12%;
+    top: 24%;
+    height: 18%;
+    border-radius: 999px;
+    background:
+        radial-gradient(circle at 20% 50%, rgba(86, 118, 112, 0.08) 0 10px, transparent 11px),
+        linear-gradient(180deg, rgba(86, 118, 112, 0.08), rgba(86, 118, 112, 0.04));
+    opacity: 0.55;
+}
+
 .sobre-frente {
     position: absolute;
     inset: 0;
@@ -398,6 +442,16 @@ img {
 .sobre.abierto .solapa-interior {
     opacity: 1;
     transform: translateY(-6px) scale(1.02);
+}
+
+.sobre.abierto .sobre-papel {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-18px);
+}
+
+.sobre.abierto .sobre-frente {
+    transform: translateY(10px);
+    opacity: 0.92;
 }
 
 .sobre.abierto .sello-cera {

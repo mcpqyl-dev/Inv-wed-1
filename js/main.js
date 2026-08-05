@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function () {
             sobreSection.style.opacity = '0';
             sobreSection.style.transform = 'scale(0.9)';
             setTimeout(revealContent, 380);
-        }, 920);
+        }, 1250);
     }
 
     function launchConfetti() {
