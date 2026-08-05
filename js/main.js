@@ -293,12 +293,13 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // Dejar visible la apertura completa antes de cambiar a la invitacion.
         setTimeout(function () {
             sobreSection.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
             sobreSection.style.opacity = '0';
             sobreSection.style.transform = 'scale(0.9)';
-            setTimeout(revealContent, 240);
-        }, 120);
+            setTimeout(revealContent, 380);
+        }, 920);
     }
 
     function launchConfetti() {
