@@ -445,6 +445,43 @@ img {
     text-align: center;
 }
 
+.countdown {
+    margin: 0 auto 2rem;
+    max-width: 540px;
+    padding: 1.1rem 1.2rem 1rem;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.4));
+    border: 1px solid rgba(212, 165, 116, 0.35);
+    border-radius: 12px;
+    box-shadow: 0 10px 24px var(--sombra-suave);
+}
+
+.countdown-titulo {
+    font-family: var(--font-cuerpo);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 2.6px;
+    color: var(--marron-claro);
+    margin-bottom: 0.55rem;
+}
+
+.countdown-tiempo {
+    font-family: var(--font-titulo);
+    font-size: clamp(1.8rem, 5.8vw, 2.7rem);
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--terracota);
+    line-height: 1.1;
+    margin-bottom: 0.25rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.countdown-etiquetas {
+    font-size: 0.74rem;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--marron-claro);
+}
+
 .fecha-container {
     display: flex;
     align-items: center;
@@ -521,6 +558,37 @@ img {
     color: var(--salvia-oscuro);
     font-weight: 500;
     letter-spacing: 1px;
+}
+
+.mapa-boton {
+    margin-top: 1rem;
+    padding: 0.72rem 1.1rem;
+    border: 1px solid var(--salvia);
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--salvia) 0%, var(--salvia-oscuro) 100%);
+    color: var(--blanco);
+    font-family: var(--font-cuerpo);
+    font-size: 0.83rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 12px rgba(122, 143, 106, 0.26);
+}
+
+.mapa-boton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(122, 143, 106, 0.35);
+}
+
+.mapa-boton:active {
+    transform: translateY(0);
+}
+
+.mapa-boton:focus-visible {
+    outline: 2px solid var(--salvia-oscuro);
+    outline-offset: 3px;
 }
 
 /* ─── Fotos ─── */
@@ -1191,6 +1259,21 @@ img {
 
     .fotos-grid {
         gap: 0.5rem;
+    }
+
+    .countdown {
+        padding: 0.95rem 0.8rem 0.85rem;
+        margin-bottom: 1.6rem;
+    }
+
+    .countdown-tiempo {
+        font-size: clamp(1.55rem, 8.4vw, 2.15rem);
+        letter-spacing: 0.8px;
+    }
+
+    .countdown-etiquetas {
+        font-size: 0.65rem;
+        letter-spacing: 1.2px;
     }
 
     .foto-grande { height: 200px; }

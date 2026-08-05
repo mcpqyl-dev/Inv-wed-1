@@ -14,7 +14,15 @@
             nombreDefault: '[Nombre del Invitado]',
             pasesDefault: 1,
             maxPasesAbsoluto: 10,
-            ocultarCamposSiNoAsiste: true
+            ocultarCamposSiNoAsiste: true,
+            // Fecha/hora del evento para cuenta regresiva (formato ISO).
+            eventDateIso: '2026-09-15T16:00:00',
+            // Nota: cambia estas coordenadas por las reales del local.
+            maps: {
+                lat: 19.432608,
+                lng: -99.133209,
+                zoom: 17
+            }
         },
         security: {
             // Compatibilidad temporal con links antiguos ?nombre=...&pases=...

@@ -48,7 +48,7 @@
 
                 <!-- Sello de cera -->
                 <button type="button" class="sello-cera" id="sello-cera" aria-label="Abrir invitacion">
-                    <img src="Image/sello-optimized.png" alt="Sello del sobre" class="sello-cera-imagen">
+                    <img src="Image/sello.png" alt="Sello del sobre" class="sello-cera-imagen">
                 </button>
             </div>
 
@@ -78,6 +78,11 @@
 
         <!-- Fecha y lugar -->
         <section class="seccion-fecha">
+            <div class="countdown" aria-live="polite" aria-atomic="true">
+                <p class="countdown-titulo">El gran dia empieza en</p>
+                <div class="countdown-tiempo" id="countdown-tiempo">00:00:00:00</div>
+                <p class="countdown-etiquetas">dias:horas:minutos:segundos</p>
+            </div>
             <div class="fecha-container">
                 <div class="fecha-linea fecha-linea-izq"></div>
                 <div class="fecha-centro">
@@ -92,6 +97,9 @@
                 <p class="lugar-nombre">[Nombre del Lugar / Hacienda]</p>
                 <p class="lugar-direccion">[Dirección completa del evento]</p>
                 <p class="lugar-hora">Ceremonia: [4:00 PM] | Recepción: [6:00 PM]</p>
+                <button type="button" class="mapa-boton" id="abrir-mapa" aria-label="Abrir ubicacion en Google Maps">
+                    Ver ubicacion en Google Maps
+                </button>
             </div>
         </section>
 

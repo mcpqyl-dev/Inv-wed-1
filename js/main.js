@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const invitacionSection = document.getElementById('invitacion-section');
     const guestStatus = document.getElementById('guest-status');
     const guestStatusText = document.getElementById('guest-status-text');
+    const countdownTime = document.getElementById('countdown-tiempo');
+    const countdownTitle = document.querySelector('.countdown-titulo');
+    const countdownLabels = document.querySelector('.countdown-etiquetas');
+    const abrirMapaBtn = document.getElementById('abrir-mapa');
 
     const nombreCarta = document.getElementById('nombre-invitado');
     const pasesCarta = document.getElementById('cantidad-pases');
@@ -49,6 +53,62 @@ document.addEventListener('DOMContentLoaded', function () {
         const parsed = parseInt(String(value), 10);
         if (!Number.isFinite(parsed) || parsed < 1) return 1;
         return Math.min(parsed, safeAbsoluteMax);
+    }
+
+    function formatCountdownValue(value) {
+        return String(value).padStart(2, '0');
+    }
+
+    function setupCountdown() {
+        if (!countdownTime) return;
+
+        const eventDateIso = (uiConfig.eventDateIso || '').trim();
+        const targetDate = eventDateIso ? new Date(eventDateIso) : null;
+
+        if (!targetDate || Number.isNaN(targetDate.getTime())) {
+            countdownTime.textContent = '--:--:--:--';
+            return;
+        }
+
+        const updateCountdown = function () {
+            const now = new Date();
+            const diffMs = targetDate.getTime() - now.getTime();
+
+            if (diffMs <= 0) {
+                if (countdownTitle) {
+                    countdownTitle.textContent = '¡Hoy es el gran día!';
+                }
+                if (countdownLabels) {
+                    countdownLabels.textContent = 'La celebracion ya comenzo';
+                }
+                countdownTime.textContent = '00:00:00:00';
+                return;
+            }
+
+            if (countdownTitle) {
+                countdownTitle.textContent = 'El gran dia empieza en';
+            }
+
+            if (countdownLabels) {
+                countdownLabels.textContent = 'dias:horas:minutos:segundos';
+            }
+
+            const totalSeconds = Math.floor(diffMs / 1000);
+            const days = Math.floor(totalSeconds / 86400);
+            const hours = Math.floor((totalSeconds % 86400) / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            countdownTime.textContent = [
+                formatCountdownValue(days),
+                formatCountdownValue(hours),
+                formatCountdownValue(minutes),
+                formatCountdownValue(seconds)
+            ].join(':');
+        };
+
+        updateCountdown();
+        window.setInterval(updateCountdown, 1000);
     }
 
     function setGuestStatus(message, variant) {
@@ -278,6 +338,36 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function setupMapButton() {
+        if (!abrirMapaBtn) return;
+
+        const mapsConfig = uiConfig.maps || {};
+        const lat = Number(mapsConfig.lat);
+        const lng = Number(mapsConfig.lng);
+        const zoom = Number.isFinite(Number(mapsConfig.zoom)) ? Number(mapsConfig.zoom) : 17;
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+            abrirMapaBtn.disabled = true;
+            abrirMapaBtn.setAttribute('aria-disabled', 'true');
+            abrirMapaBtn.title = 'Faltan coordenadas validas en la configuracion.';
+            return;
+        }
+
+        const mapsUrl = 'https://www.google.com/maps?q=' + encodeURIComponent(lat + ',' + lng) + '&z=' + encodeURIComponent(String(zoom));
+
+        abrirMapaBtn.addEventListener('click', function () {
+            const popup = window.open(
+                mapsUrl,
+                'googleMapsPopup',
+                'popup=yes,width=980,height=720,left=80,top=60,resizable=yes,scrollbars=yes'
+            );
+
+            if (!popup) {
+                window.location.href = mapsUrl;
+            }
+        });
+    }
+
     window.InvitationUI = {
         applyGuestContext: applyGuestContext,
         setGuestStatus: setGuestStatus,
@@ -300,6 +390,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     setupQuantitySelector();
     setupAttendanceToggle();
+    setupCountdown();
+    setupMapButton();
     setupRevealAnimation();
     setupParallax();
 
